@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+        html,
+        body {
+            display: flex;
+            flex-direction: row;
+            margin: 0;
+            box-sizing: border-box;
+            height: 100%;
+            width: 100%;
+            font-family: "Liberation Mono", "DejaVu Sans Mono", "Courier New", monospace, Avenir, Helvetica, Arial, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background-color: rgb(50, 50, 50);
+            color: white;
+        }
+
+        video {
+            height: 100%;
+            width: calc(100% - 25rem);
+        }
+
+        .chat {
+            width: 25rem;
+            padding: 1rem;
+            border-left: 0.1rem solid rgb(120, 120, 120);
+            display: flex;
+            flex-direction: column;
+
+        }
+
+        .chat-message {
+            overflow: hidden;
+            overflow-y: auto;
+        }
+
+        .chat-input {
+            padding: 0.5rem;
+            border-top: 0.1rem solid rgb(120, 120, 120);
+        }
+    </style>
+</head>
+
+<body>
+    <video controls id="video"></video>
+    <div class="chat">
+        <p class="chat-message" style="flex-grow: 1;" id="chat">
+            <strong>聊天室:</strong>
+        </p>
+        <div class="chat-input">
+            <input type="text" id="message">
+            <input type="button" value="send" onclick="send()">
+        </div>
+    </div>
+
+    <script>
+        let video = document.getElementById('video');
+        let chat = document.getElementById("chat");
+        let message = document.getElementById("message");
+
+        let socket = new WebSocket("ws://127.0.0.1:4343", "yo-websocket");
+        socket.onmessage = function (event) {
+            let message = splitMessage(event.data);
+            if (message === "") { return; }
+
+            let br = document.createElement("BR");
+            let text = document.createTextNode(message);
+            chat.appendChild(br);
+            chat.appendChild(text);
+        };
+
+        fetch("http://127.0.0.1:1337/status")
+            .then(response => response.json())
+            .then((response) => {
+                if (response.live) {
+                    loadStream();
+                }
+            });
+
+        function send() {
+            socket.send(message.value);
+            message.value = "";
+        }
+
+        function splitMessage(message) {
+            let m = message.split("@;");
+            if (m[0] === "server") {
+                if (m[1] === "live") {
+                    this.loadStream();
+                }
+                return "";
+            } else {
+                m.shift();
+                return m.join("");
+            }
+        }
+
+        function loadStream() {
+            let src = "http://127.0.0.1:1337/video.m3u8";
+            if (video.canPlayType("application/vnd.apple.mpegurl")) {
+                video.src = src;
+                video.play();
+            } else if (Hls.isSupported()) {
+                let hls = new Hls();
+                hls.loadSource(src);
+                hls.attachMedia(video);
+                video.play();
+            }
+        }
+    </script>
+</body>
+
+</html>

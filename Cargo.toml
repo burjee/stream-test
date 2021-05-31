@@ -1,0 +1,17 @@
+[package]
+name = "mock-yo-stream"
+version = "0.1.0"
+authors = ["burjee"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+slab = "0.4.2"
+bytes = "1"
+rml_rtmp = "0.3.6"
+mpeg2ts = "0.1.1"
+websocket = "0.24.0"
+hyper = { version = "0.14", features = ["full"] }
+tokio = { version = "1.5.0", features = ["full"] }
+tokio-util = "0.6.7"
