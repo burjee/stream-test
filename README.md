@@ -1,4 +1,4 @@
-# mock-yo-stream
+# stream-test
 
 Rust與串流練習
 
